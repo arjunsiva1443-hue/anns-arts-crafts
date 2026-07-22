@@ -349,3 +349,77 @@ function initEvents() {
 store.subscribe(updateUI);
 initEvents();
 updateUI(store.state);
+
+// ─── Mobile Bottom Navigation Wiring ───
+function initMobileBottomNav() {
+  const mobBtnHome = document.getElementById("mobBtnHome");
+  const mobBtnCategory = document.getElementById("mobBtnCategory");
+  const mobBtnCart = document.getElementById("mobBtnCart");
+  const mobBtnWishlist = document.getElementById("mobBtnWishlist");
+  const mobBtnAccount = document.getElementById("mobBtnAccount");
+  const mobCartBadge = document.getElementById("mobCartBadge");
+
+  if (mobBtnHome) {
+    mobBtnHome.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      setActiveMobBtn(mobBtnHome);
+    });
+  }
+
+  if (mobBtnCategory) {
+    mobBtnCategory.addEventListener("click", () => {
+      const grid = document.getElementById("productsGrid");
+      if (grid) window.scrollTo({ top: grid.offsetTop - 80, behavior: "smooth" });
+      setActiveMobBtn(mobBtnCategory);
+    });
+  }
+
+  if (mobBtnCart) {
+    mobBtnCart.addEventListener("click", () => {
+      store.toggleCart(true);
+    });
+  }
+
+  if (mobBtnWishlist) {
+    mobBtnWishlist.addEventListener("click", () => {
+      const tabs = document.getElementById("categoryTabs");
+      if (tabs) {
+        tabs.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+        const wTab = tabs.querySelector("[data-category='wishlist']");
+        if (wTab) wTab.classList.add("active");
+      }
+      store.setCategory("wishlist");
+      const grid = document.getElementById("productsGrid");
+      if (grid) window.scrollTo({ top: grid.offsetTop - 80, behavior: "smooth" });
+      setActiveMobBtn(mobBtnWishlist);
+    });
+  }
+
+  if (mobBtnAccount) {
+    mobBtnAccount.addEventListener("click", () => {
+      if (store.state.currentUser) {
+        if (confirm(`Logged in as ${store.state.currentUser.name}. Log out?`)) {
+          store.logout();
+        }
+      } else {
+        store.toggleAuthModal(true);
+      }
+    });
+  }
+
+  // Sync mobile cart badge with main cart state
+  store.subscribe((state) => {
+    const totals = store.getCartTotals();
+    if (mobCartBadge) {
+      mobCartBadge.textContent = totals.itemCount;
+      mobCartBadge.style.display = totals.itemCount > 0 ? "flex" : "none";
+    }
+  });
+}
+
+function setActiveMobBtn(activeBtn) {
+  document.querySelectorAll(".mob-nav-btn").forEach(b => b.classList.remove("active"));
+  if (activeBtn) activeBtn.classList.add("active");
+}
+
+initMobileBottomNav();
